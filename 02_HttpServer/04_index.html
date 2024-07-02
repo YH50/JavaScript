@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>04_index.html</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!--
+        1. axios 라이브러리 : jquery, ajax 와 같은 종류의 javascript 라이브러리임
+        2. Http 통신을 하는데 매우 인기있는 라이브러리 이며
+        3. 브라우저와 Node.js 플랫폼에서 모두 사용 가능함
+        4. 현재는 브라우저 상에서 사용하기 위해 src로 로딩함
+        5. 익스프레스 서버에서 사용하려면 설치 명령으로 설치 후 사용
+        6. JSON 데이터 자동변환 기능이 있고, get, post, put, delete 등을 다영하게 구분하여 request 요청이 가능함
+    -->
+</head>
+<body>
+    <nav>
+        <a href="/">HOME</a>&nbsp;&nbsp;&nbsp;
+        <a href="/about">ABOUT</a><br></br>
+    </nav>
+    <div>
+        <form id="form">
+            <input type="text" id="username">
+            <button type="submit">등록</button>
+        </form>
+    </div>
+
+    <div id="list"></div>
+    <script>
+        getUsers();
+        // 자바스크립트의 이벤트 리스너 사용
+        // 대상 버튼이나 div가 먼저 로딩된 후 리스너가 설정되어야 정상 작동하기 때문에
+        // 대상보다 아랫쪽에 스크립트 코드를 넣어야함
+        // submit 버튼이 클릭되면 username에 입력한 이름을 서버로 전송하여 등록하고 현재위치로 되돌아옴
+        // " 화면 전환 없음"
+        document.getElementById("form").addEventListener('submit', async(e)=>{
+            e.preventDefault();     // submit stop
+            const username = e.target.username.value;
+            if(!username){
+                return alert('이름 입력해라!!');
+            }
+            try{
+                const result = await axios.post('/user', {username});   //post 의 user
+                alert(result.data);
+            }catch(err){
+                console.error(err);
+            }
+            e.target.username.value='';
+
+            getUsers();
+
+        });
+        
+        async function getUsers(){
+                try{
+                    const result = await axios.get('/user');     // get 의 user
+                    console.log(result);
+                    const users = result.data;
+    
+                    // list 를 비워줌
+                    const list = document.getElementById('list');
+                    list.innerHTML = '';
+    
+                    const keys = Object.keys(users);        // 객체의 키값을 배열 형태로 추출
+    
+                    keys.map((key)=>{
+                        const userDiv = document.createElement('div');  // div 태그 생성
+                        const span1 = document.createElement('span');      // span 태그 생성
+                        span1.textContent = key;
+                        const span2 = document.createElement('span');      // span 태그 생성
+                        span2.textContent = users[key];
+                        userDiv.appendChild(span1);
+                        userDiv.appendChild(span2);
+
+                        const edit = document.createElement("button");
+                        edit.textContent = '수정';
+                        const remove = document.createElement('button');
+                        remove.textContent = '삭제';
+
+                        edit.addEventListener('click', async (e)=>{
+                            const username = prompt('바꿀 이름 입력하셈 ', users[key]);
+                            if(!username){
+                                return alert ('이름 무조건 입력하셈!!');
+                            }
+                            try{
+                                await axios.put('/user', {key, username});
+                            }catch(err){
+                                console.error(err);
+                            }
+                            getUsers();
+                        });
+
+                        remove.addEventListener('click', async (e)=>{
+                            try{
+                                await axios.delete('/user/' + key);        //http://localhost:3000/user/18XXXXXXX
+                            }catch(err){
+                                console.error(err);
+                            }
+                            getUsers();
+                        });
+
+                        userDiv.appendChild(edit);      // div 안에 수정 버튼 삽입
+                        userDiv.appendChild(remove);    // div 태그에 삭제 버튼 삽입
+
+                        list.appendChild(userDiv);
+                    });
+                }catch(err){
+                    console.error(err);
+                }
+            }
+    </script>
+</body>
+</html>

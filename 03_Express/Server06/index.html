@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <form method="post" id="form">
+        ID : <input type="text" name="userid"><br/>
+        PW : <input type="password" name="pw"><br/>
+        <input type="submit" value="로그인"></br>
+        <div id="message"></div>
+    </form>
+    <script>
+        document.getElementById("form").addEventListener("submit", async (e)=>{
+            e.preventDefault();     // submit 멈춤 기능
+            const userid = e.target.userid.value;
+            const pw=e.target.pw.value;
+            if(userid == ""){
+                return alert('아이디 입력하셈');
+            }else if(pw == ''){
+                return alert('비번 입력하셈');
+            }
+            // 로그인 이후 아이디가 없다, 비번이 없다 등의 메시지를 form 내에 표시함.
+            try{
+                const result = await axios.post('/login', {userid, pw});
+                const res = result.data;
+                if(res.msg=='ok'){        // 정상 로그인일 때
+                    location.href='/';
+                }else{
+                    document.getElementById('message').innerHTML = res.msg;
+                }
+            }catch(err){
+                console.error(err);
+            }
+        });
+    </script>
+</body>
+</html>
