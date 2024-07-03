@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  </head>
+  <body>
+    <form id="form" method="post" enctype="multipart/form-data">
+      <table border="1">
+        <tr>
+          <td>제목</td>
+          <td><input type="text" name="title" /></td>
+        </tr>
+        <tr>
+          <td>설명</td>
+          <td><input type="text" name="description" /></td>
+        </tr>
+        <tr>
+          <td>가격</td>
+          <td><input type="text" name="price" /></td>
+        </tr>
+        <tr>
+          <td>이미지</td>
+          <td><input type="file" name="image" /></td>
+        </tr>
+        <tr>
+          <td colspan="2"><input type="submit" value="전송" /></td>
+        </tr>
+      </table>
+    </form>
+    <table border="1">
+      <tr>
+        <td>제목</td>
+        <td><div id="title">&nbsp;</div></td>
+      </tr>
+      <tr>
+        <td>설명</td>
+        <td><div id="description">&nbsp;</div></td>
+      </tr>
+      <tr>
+        <td>가격</td>
+        <td><div id="price">&nbsp;</div></td>
+      </tr>
+      <tr>
+        <td>이미지</td>
+        <td><div id="img">&nbsp;</div></td>
+      </tr>
+    </table>
+    <!--
+        1. 서버가 시작되면 첫 페이지로 현재 파일이 화면에 표시되도록 하기
+        2. 윗쪽 테이블의 내용을 바탕으로 파일을 업로드 후 다시 돌아와서 아래쪽에 입력한 내용을
+                각 div 에 넣기. img div 는 가로크기 400의 이미지 넣을 것
+        3. 윗쪽 테이블의 입력란은 모두 비우기
+        -->
+    <script>
+      document.getElementById("form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (e.target.title.value == "") {
+          return alert("제목 입력하셈");
+        }
+        const formData = new FormData();
+        formData.append("title", e.target.title.value);
+        formData.append("description", e.target.description.value);
+        formData.append("price", e.target.price.value);
+        formData.append("image", e.target.image.files[0]);
+        //------//
+        try {
+          const result = await axios.post("/upload", formData);
+          const res = result.data;
+          document.getElementById("title").innerHTML = res.title;
+          document.getElementById("description").innerHTML = res.description;
+          document.getElementById("price").innerHTML = res.price;
+          document.getElementById("img").innerHTML =
+            '<img src="./' + res.filename + '" width=400>';
+        } catch (err) {}
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="/board.css" rel="stylesheet" />
+  </head>
+  <body>
+    <form
+      name="join"
+      class="login-form"
+      id="join-form"
+      action="join"
+      method="post"
+    >
+      <h2>Join</h2>
+      <div class="field">
+        <label>User ID</label
+        ><input style="flex: 3" type="text" id="userid" name="userid" />
+        <input style="flex: 1" type="button" value="ID Check" id="idcheck" />
+        <span style="flex: 1" id="idOk"></span>
+        <input type="hidden" name="reid" id="reid" />
+      </div>
+      <div class="field">
+        <label>Password</label><input type="password" name="pwd" id="pwd" />
+      </div>
+      <div class="field">
+        <label>Retype Pw</label
+        ><input type="password" name="pwd_check" id="pwd_check" />
+      </div>
+      <div class="field">
+        <label>name</label><input type="text" name="name" id="name" />
+      </div>
+      <div class="field">
+        <label>Email</label><input type="text" name="email" id="email" />
+      </div>
+      <div class="field">
+        <label>Phone</label><input type="text" name="phone" id="phone" />
+      </div>
+      <div class="field"><label id="message"></label></div>
+      <div class="login-button">
+        <input type="submit" class="btn-login" value="Join" />
+        <input
+          type="button"
+          class="btn-login"
+          value="Back"
+          onClick="location.href='/'"
+        />
+      </div>
+    </form>
+    <script>
+      document
+        .getElementById("idcheck")
+        .addEventListener("click", async (e) => {
+          const userid = document.join.userid.value;
+          if (!userid) {
+            return alert("조회할 아이디 입력하셈!!");
+          }
+          try {
+            const result = await axios.post("/members/idcheck", { userid });
+            const id = result.data.id;
+            if (id == "0") {
+              document.getElementById("idOk").innerHTML = "어 가능~";
+              document.getElementById("idOk").style.color = "blue";
+              document.getElementById("reid").value = "ok";
+            } else {
+              document.getElementById("idOk").innerHTML = "안된다 마!!";
+              document.getElementById("idOk").style.color = "red";
+              document.getElementById("reid").value = "";
+            }
+          } catch (err) {
+            console.error(err);
+          }
+        });
+      document
+        .getElementById("join-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const userid = e.target.userid.value;
+          const pwd = e.target.pwd.value;
+          const pwd_chk = e.target.pwd_check.value;
+          const name = e.target.name.value;
+          const email = e.target.email.value;
+          const phone = e.target.phone.value;
+          const reid = e.target.reid.value;
+
+          if (!userid) {
+            return alert("아이디 입력하셈!");
+          }
+          if (!pwd) {
+            return alert("비밀번호 입력하셈!");
+          }
+          if (pwd != pwd_chk) {
+            return alert("비밀번호 확인 다시 하셈!");
+          }
+          if (!name) {
+            return alert("이름 입력하셈!");
+          }
+          if (!email) {
+            return alert("이메일 입력하셈!");
+          }
+          if (!phone) {
+            return alert("전화번호 입력하셈!");
+          }
+          if (!reid) {
+            return alert("아이디 중복체크하셈!");
+          }
+
+          try {
+            const result = await axios.post("/members/join", {
+              userid,
+              pwd,
+              name,
+              email,
+              phone,
+            });
+            alert(result.data.msg);
+            location.href = "/";
+          } catch (err) {
+            console.error(err);
+          }
+        });
+    </script>
+  </body>
+</html>

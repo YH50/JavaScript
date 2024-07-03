@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  </head>
+  <body>
+    <form id="form" method="post" enctype="multipart/form-data">
+      <input type="file" name="image" /><br />
+      <input type="text" name="title" /><br />
+      <button type="submit">Upload</button>
+    </form>
+    <br /><br />
+    <div id="filename"></div>
+    <div id="subject"></div>
+    <div id="img"></div>
+
+    <script>
+      document.getElementById("form").addEventListener("submit", async (e) => {
+        e.preventDefault(); // submit 멈춤 기능
+        const formData = new FormData();
+        formData.append("title", e.target.title.value);
+        formData.append("image", e.target.image.files[0]);
+        try {
+          const result = await axios.post("/upload", formData);
+          // 되돌아온 데이터들을 이용하여 방금 업로드한 이미지를 아래에 표시할 예정
+          const res = result.data;
+          document.getElementById("filename").innerHTML =
+            "업로드된 파일 이름 : " + res.filename;
+          document.getElementById("subject").innerHTML = "제목 : " + res.title;
+          document.getElementById("img").innerHTML =
+            '<img src="./downloads/' + res.filename + '" width=300>';
+        } catch (err) {}
+        e.target.image.value = "";
+        e.target.title.value = "";
+      });
+    </script>
+  </body>
+</html>
