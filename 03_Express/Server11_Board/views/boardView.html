@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="/board.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="main_container">
+      <h2>게시글 상세 보기</h2>
+      <div class="board">
+        <div class="field">
+          <div class="label">작성자</div>
+          <div class="text" id="writer"></div>
+        </div>
+        <div class="field">
+          <div class="label">이메일</div>
+          <div class="text" id="email"></div>
+        </div>
+        <div class="field">
+          <div class="label">조회수</div>
+          <div class="text" id="readcount"></div>
+        </div>
+        <div class="field">
+          <div class="label">작성일</div>
+          <div class="text" id="writedate"></div>
+        </div>
+        <div class="field">
+          <div class="label">제목</div>
+          <div class="text" id="title"></div>
+        </div>
+        <div class="field" style="margin-bottom: 15px">
+          <div class="label">내용</div>
+          <div
+            class="text"
+            style="font-size: 140%; flex: 1.5"
+            id="content"
+          ></div>
+          <div class="label" style="flex: 0.5">이미지</div>
+          <div class="text" style="flex: 2" id="image"></div>
+        </div>
+        <div class="login-button">
+          <input
+            type="button"
+            class="btn-login"
+            value="수정"
+            onclick="location.href='/boards/updateBoardForm'"
+          />
+          <input type="button" class="btn-login" value="삭제" />
+          <input
+            type="button"
+            class="btn-login"
+            value="목록"
+            onClick="location.href='/boards/boardlist'"
+          />
+        </div>
+      </div>
+
+      <div class="reply">
+        <div class="reply_row">
+          <div class="reply_col reply_title">작성자</div>
+          <div class="reply_col reply_title">작성일시</div>
+          <div class="reply_col reply_title" style="text-align: center">
+            댓글
+          </div>
+          <div class="reply_col reply_title">작성/삭제</div>
+        </div>
+        <form
+          id="insertReply"
+          name="reply"
+          style="margin-bottom: 0px"
+          method="post"
+        >
+          <input type="hidden" id="rep_writer" />
+          <input type="hidden" id="boardnum" />
+          <div class="reply_row">
+            <div class="reply_col" id="rep_writer2"></div>
+            <div class="reply_col" id="rep_writedate"></div>
+            <div class="reply_col">
+              <input type="text" id="rep_content" size="65" />
+            </div>
+            <div class="reply_col">
+              <input type="submit" value="답글 작성" />
+            </div>
+          </div>
+        </form>
+
+        <div id="replylist"></div>
+      </div>
+    </div>
+    <script>
+      getBoard();
+      getReply();
+
+      document
+        .getElementById("insertReply")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const userid = e.target.rep_writer.value;
+          const boardnum = e.target.boardnum.value;
+          const content = e.target.rep_content.value;
+          if (!content) {
+            return alert("댓글 안쓰고 뭐하노!!");
+          }
+          try {
+            await axios.post("/boards/insertReply", {
+              userid,
+              boardnum,
+              content,
+            });
+            getReply();
+          } catch (err) {
+            console.error(err);
+          }
+        });
+
+      async function getReply() {
+        const date = new Date();
+        try {
+          let result = await axios.get("/loginUser");
+          const loginUser = result.data;
+          console.log(loginUser);
+          document.getElementById("rep_writer").value = loginUser.userid;
+          document.getElementById("rep_writer2").innerHTML = loginUser.userid;
+          document.getElementById("rep_writedate").innerHTML =
+            String(date.getMonth() + 1).padStart(2, "0") +
+            "/" +
+            String(date.getDate()).padStart(2, "0") +
+            "" +
+            String(date.getHours()).padStart(2, "0") +
+            ":" +
+            String(date.getMinutes()).padStart(2, "0");
+
+          result = await axios.get("/boards/getReplys");
+          const replys = result.data;
+
+          const replylist = document.querySelector("#replylist");
+          replylist.innerHTML = "";
+
+          replys.map((reply, idx) => {
+            let reply_row = document.createElement("div");
+            reply_row.className = "reply_row";
+
+            let reply_col = document.createElement("div");
+            reply_col.className = "reply_col";
+            reply_col.textContent = reply.userid;
+            reply_row.appendChild(reply_col);
+
+            reply_col = document.createElement("div");
+            reply_col.className = "reply_col";
+            reply_col.textContent = reply.writedate.substring(0, 10);
+            reply_row.appendChild(reply_col);
+
+            reply_col = document.createElement("div");
+            reply_col.className = "reply_col";
+            reply_col.textContent = reply.content;
+            reply_row.appendChild(reply_col);
+
+            reply_col = document.createElement("div");
+            reply_col.className = "reply_col";
+            let remove = document.createElement("button");
+            remove.textContent = "삭제";
+            reply_col.appendChild(remove);
+            reply_row.appendChild(reply_col);
+
+            remove.addEventListener("click", async (e) => {
+              try {
+                await axios.delete("/boards/deleteReply/" + reply.replynum);
+                getReply();
+              } catch (err) {
+                console.error(err);
+              }
+            });
+
+            replylist.appendChild(reply_row);
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      async function getBoard() {
+        try {
+          // session 에 저장된 게시물 번호로 게시물을 조회하고 페이지의 id값을 이용하여 내용 표시하기
+          const result = await axios.get("/boards/getBoard");
+          const board = result.data;
+          console.log(board);
+          document.getElementById("writer").innerHTML = board.userid;
+          document.getElementById("email").innerHTML = board.email;
+          document.getElementById("readcount").innerHTML = board.readcount;
+          document.getElementById("writedate").innerHTML =
+            board.writedate.substring(0, 10);
+          document.getElementById("title").innerHTML = board.title;
+          document.getElementById("content").innerHTML =
+            "<pre>" + board.content + "</pre>";
+
+          document.getElementById("boardnum").value = board.num;
+
+          if (board.image) {
+            document.getElementById("image").innerHTML =
+              "<img src='/img/" + board.savefilename + "' width='200' />";
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      }
+    </script>
+  </body>
+</html>

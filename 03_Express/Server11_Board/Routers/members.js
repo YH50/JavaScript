@@ -141,4 +141,18 @@ router.post("/update", async (req, res, next) => {
   }
 });
 
+router.delete("/deleteMember/:userid", async (req, res, next) => {
+  // 주소에 전달인수 parameter 가 있다
+  // const loginUser = req.session[req.cookies.session];
+  // const userid = loginUser.userid;                                 >> 이 두 문장은 쓸 필요가 없다
+  const sql = "delete from member where userid=?";
+  try {
+    const connection = await getConnection();
+    const [result, fields] = await connection.query(sql, [req.params.userid]);
+    res.send("ok)");
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;
