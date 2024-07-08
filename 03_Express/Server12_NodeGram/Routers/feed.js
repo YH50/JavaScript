@@ -37,7 +37,7 @@ const uploadObj = multer({
 
 //=====================================================================
 router.get("/mainlist", (req, res) => {
-  res.sendFile(path.join(__dirname, "..", "/views/mainlist.html"));
+  res.sendFile(path.join(__dirname, "/..", "/views/mainlist.html"));
 });
 
 router.get("/feedWriteForm", (req, res) => {
@@ -91,10 +91,54 @@ router.post("/writeFeed", obj.single("img"), async (req, res, next) => {
         sql = "insert into hash_feed(feed_id, hash_id) values(?,?)";
         let [result3, field3] = await connection.query(sql, [feedid, tagid]);
       });
+      res.send("oo");
     }
   } catch (err) {
     next(err);
   }
 });
+
+router.get("/getFeedList", async (req, res, next) => {
+  try {
+    const connection = await getConnection();
+    const sql = "select * from feed order by id desc";
+    const [rows, fields] = await connection.query(sql);
+    res.send(rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/search', async(req, res, next)=>{
+  const {word} = req.body;
+  console.log(word);
+  try{
+    const connection = await getConnection();
+    // word 를 hashTag 테이블에서 검색
+   let sql = 'select * from hashtag where word=?';
+   let [rows, fields] = await connection.query(sql, [word]);
+   if(rows.length >= 1){
+     // 검색된 word 의 hashTag 테이블의 hash_id 로 hash_feed 테이블에서 검색
+     // 검색된 feed_id 로 feed 테이블 검색
+     let wordid = rows[0].id;
+     sql = 'select * from feed where id in(select feed_id from hash_feed where hash_id=?) order by id desc';
+     let [rows2, fields2] = await connection.query(sql, [wordid]);
+     if(rows2.length >= 1 ){
+      // 검색된 feed 들을 res 로 전송
+      res.send(rows2);
+     }else{
+      console.log(1);
+      res.send([]);
+     }
+     // 검색된 feed 들을 res 로 전송
+    }else{
+      console.log(2);
+      res.send([]);
+    } 
+
+  }catch(err){
+    next(err);
+  }
+})
 
 module.exports = router;

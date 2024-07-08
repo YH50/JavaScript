@@ -64,10 +64,10 @@
 
           try {
             const result = await axios.post("/feed/writeFeed", formData);
-            location.href = "/feed/mainlist";
           } catch (err) {
             console.error(err);
           }
+          location.href = "/feed/mainlist";
         });
 
       document.getElementById("img").addEventListener("change", async (e) => {
@@ -91,7 +91,7 @@
       async function getLoginUser() {
         try {
           const result = await axios.get("/user/getLoginUser");
-          const loginUser = result.data;
+          const loginUser = result.data.loginUser;
           document.getElementById("writer").value = loginUser.nickname;
         } catch (err) {
           console.error(err);

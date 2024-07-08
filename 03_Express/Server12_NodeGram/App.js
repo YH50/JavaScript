@@ -5,11 +5,14 @@ const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 const app = express();
 const session = require("express-session");
+const passport = require('passport');
 
 app.set("port", process.env.PORT || 3000);
 app.use("/", express.static(path.join(__dirname, "public")));
 app.use("/img", express.static(path.join(__dirname, "uploads")));
 dotenv.config();
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
@@ -24,6 +27,11 @@ app.use(
     },
   })
 );
+
+const passportConfig = require ('./passport');    //passport 폴더의 index.js를 require 함
+passportConfig();
+app.use(passport.initialize());
+app.use(passport.session());
 
 const indexRouter = require("./Routers");
 const userRouter = require("./Routers/user");
